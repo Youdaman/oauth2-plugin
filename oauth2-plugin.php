@@ -24,11 +24,11 @@ class OAuth2_Plugin {
 	 * OAuth2_Plugin constructor.
 	 */
 	public function __construct() {
+
+		// Start a session since we need to store the state parameter
 		session_start();
 
-		// $http_client = new \GuzzleHttp\Client( array( 'curl' => array( CURLOPT_SSL_VERIFYPEER => false ) ) );
-		$http_client = new \GuzzleHttp\Client( array( 'verify' => false ) );
-
+		// Instantiate the OAuth2 client
 		$this->provider = new \League\OAuth2\Client\Provider\GenericProvider(
 			array(
 				'clientId'                => $this->client_id,
@@ -39,19 +39,14 @@ class OAuth2_Plugin {
 				'urlResourceOwnerDetails' => 'https://test.wp/wp-json/wp/v2/users/me',
 			),
 			array(
-				'httpClient' => $http_client,
+				// override the default Guzzle client to avoid self-signed certificate errors
+				'httpClient' => new \GuzzleHttp\Client( array( 'verify' => false ) ),
 			)
 		);
 
+		// init the rest api
 		add_action( 'rest_api_init', array( $this, 'action_rest_api_init' ) );
-		// add_action( 'init', array( $this, 'action_init' ) );
 	}
-
-	/**
-	 * Fires once WordPress has finished loading but before any headers are sent.
-	 */
-	// public function action_init() {
-	// }
 
 	/**
 	 * Fires when preparing to serve a REST API request.
@@ -60,48 +55,54 @@ class OAuth2_Plugin {
 
 		$route_namespace = 'foo/v1';
 
+		// generic route for testing
 		register_rest_route( $route_namespace, '/hello', array(
 			'methods'  => \WP_REST_Server::READABLE,
-			'callback' => array( $this, 'hello_route' ),
-			'permission_callback' => '__return_true',
+			'callback' => array( $this, 'route_hello' ),
+			'permission_callback' => fn() => current_user_can( 'read' ), // only logged in users
 		));
 
+		// route for initiating the oauth2 flow
 		register_rest_route( $route_namespace, '/auth', array(
 			'methods'  => \WP_REST_Server::READABLE,
-			'callback' => array( $this, 'auth_route' ),
+			'callback' => array( $this, 'route_auth' ),
 			'permission_callback' => '__return_true',
 		));
 
+		// route for the oauth2 callback
 		register_rest_route( $route_namespace, '/callback', array(
 			'methods'  => \WP_REST_Server::READABLE,
-			'callback' => array( $this, 'callback_route' ),
+			'callback' => array( $this, 'route_callback' ),
 			'permission_callback' => '__return_true',
+		));
+
+		// route for revoking the oauth2 token
+		register_rest_route( $route_namespace, '/revoke', array(
+			'methods'  => \WP_REST_Server::READABLE,
+			'callback' => array( $this, 'route_revoke' ),
+			'permission_callback' => fn() => current_user_can( 'read' ), // only logged in users
 		));
 	}
 
-	public function hello_route( $request ) {
+	public function route_hello( $request ) {
 		$name = $request['name'] ?? 'world';
 		return rest_ensure_response( "hello $name" );
 	}
 
-	public function auth_route() {
+	public function route_auth() {
 
-		// Fetch the authorization URL from the provider; this returns the
-		// urlAuthorize option and generates and applies any necessary parameters (e.g. state).
-		// $authorization_url = $this->provider->getAuthorizationUrl( array(
-		// 	'scope' => $this->scope,
-		// ) );
-		$authorization_url = $this->provider->getAuthorizationUrl();
+		$authorization_url = $this->provider->getAuthorizationUrl( array(
+			'scope' => $this->scope,
+			// 'state' => 'foobar123',
+		) );
 
-		// Get the state generated for you and store it to the session.
 		$_SESSION['oauth2state'] = $this->provider->getState();
 
-		// Redirect the user to the authorization URL.
 		header( 'Location: ' . $authorization_url );
 		exit;
 	}
 
-	public function callback_route() {
+	public function route_callback() {
 
 		// Check given state against previously stored one to mitigate CSRF attack
 		if ( empty( $_GET['state'] ) || empty( $_SESSION['oauth2state'] ) || ( $_GET['state'] !== $_SESSION['oauth2state'] ) ) {
@@ -161,6 +162,10 @@ class OAuth2_Plugin {
 			// Failed to get the access token or user details.
 			wp_die( esc_html( $e->getMessage() ) );
 		}
+	}
+
+	public function route_revoke() {
+		return rest_ensure_response( 'revoke' );
 	}
 }
 
