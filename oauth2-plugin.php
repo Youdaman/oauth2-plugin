@@ -19,6 +19,7 @@ class OAuth2_Plugin {
 	private $client_secret = 'Ald5C3xay0KjOd1cuMlEvKFw7LC8ALQas28hu5wvNhClE9li';
 	private $redirect_uri = 'https://oauth2-plugin.wp/wp-json/foo/v1/callback';
 	private $scope = array( 'openid email profile offline_access foo.bar' );
+	private $route_namespace = 'foo/v1';
 
 	/**
 	 * OAuth2_Plugin constructor.
@@ -53,31 +54,29 @@ class OAuth2_Plugin {
 	 */
 	public function action_rest_api_init() {
 
-		$route_namespace = 'foo/v1';
-
 		// generic route for testing
-		register_rest_route( $route_namespace, '/hello', array(
+		register_rest_route( $this->route_namespace, '/hello', array(
 			'methods'  => \WP_REST_Server::READABLE,
 			'callback' => array( $this, 'route_hello' ),
 			'permission_callback' => fn() => current_user_can( 'read' ), // only logged in users
 		));
 
 		// route for initiating the oauth2 flow
-		register_rest_route( $route_namespace, '/auth', array(
+		register_rest_route( $this->route_namespace, '/auth', array(
 			'methods'  => \WP_REST_Server::READABLE,
 			'callback' => array( $this, 'route_auth' ),
 			'permission_callback' => '__return_true',
 		));
 
 		// route for the oauth2 callback
-		register_rest_route( $route_namespace, '/callback', array(
+		register_rest_route( $this->route_namespace, '/callback', array(
 			'methods'  => \WP_REST_Server::READABLE,
 			'callback' => array( $this, 'route_callback' ),
 			'permission_callback' => '__return_true',
 		));
 
 		// route for revoking the oauth2 token
-		register_rest_route( $route_namespace, '/revoke', array(
+		register_rest_route( $this->route_namespace, '/revoke', array(
 			'methods'  => \WP_REST_Server::READABLE,
 			'callback' => array( $this, 'route_revoke' ),
 			'permission_callback' => fn() => current_user_can( 'read' ), // only logged in users
@@ -164,9 +163,43 @@ class OAuth2_Plugin {
 		}
 	}
 
-	public function route_revoke() {
+	public function route_revoke( $request ) {
+		$this->check_auth( $request );
 		return rest_ensure_response( 'revoke' );
 	}
+
+	public function check_auth( $request ) {
+
+		if ( isset( $_SESSION['oauth2'] ) ) {
+
+			// // get tenant id from request/user/session and set on user so /connections returns last used tenant id for frontend to use
+			// $tenant_id = $request['tenant_id'] ?? get_field('tenant_id', 'user_' . get_current_user_id()) ?? $_SESSION['oauth2']['tenant_id'];
+			// update_field('tenant_id', $tenant_id, 'user_' . get_current_user_id());
+
+			if ( $_SESSION['oauth2']['expires'] < time() ) {
+
+				$access_token = $this->provider->getAccessToken(
+					'refresh_token',
+					array(
+						'refresh_token' => $_SESSION['oauth2']['refresh_token'],
+					)
+				);
+
+				$_SESSION['oauth2'] = array(
+					'token' => $access_token->getToken(),
+					'expires' => $access_token->getExpires(),
+					'refresh_token' => $access_token->getRefreshToken(),
+					'id_token' => $access_token->getValues()["id_token"]
+					// // 'tenant_id' => $_SESSION['oauth2']['tenant_id'],
+					// 'tenant_id' => $tenant_id,
+				);
+			}
+		} else {
+			wp_redirect( rest_url( $this->route_namespace . '/auth' ) );
+			exit;
+		}
+	}
+
 }
 
 new OAuth2_Plugin();
