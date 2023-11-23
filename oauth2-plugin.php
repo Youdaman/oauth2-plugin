@@ -58,7 +58,7 @@ class OAuth2_Plugin {
 		register_rest_route( $this->route_namespace, '/hello', array(
 			'methods'  => \WP_REST_Server::READABLE,
 			'callback' => array( $this, 'route_hello' ),
-			'permission_callback' => fn() => current_user_can( 'read' ), // only logged in users
+			'permission_callback' => '__return_true',
 		));
 
 		// route for initiating the oauth2 flow
@@ -79,7 +79,8 @@ class OAuth2_Plugin {
 		register_rest_route( $this->route_namespace, '/revoke', array(
 			'methods'  => \WP_REST_Server::READABLE,
 			'callback' => array( $this, 'route_revoke' ),
-			'permission_callback' => fn() => current_user_can( 'read' ), // only logged in users
+			// 'permission_callback' => fn() => current_user_can( 'read' ), // only logged in users
+			'permission_callback' => '__return_true',
 		));
 	}
 
