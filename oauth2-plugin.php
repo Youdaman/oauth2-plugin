@@ -190,7 +190,7 @@ class OAuth2_Plugin {
 					'token' => $access_token->getToken(),
 					'expires' => $access_token->getExpires(),
 					'refresh_token' => $access_token->getRefreshToken(),
-					'id_token' => $access_token->getValues()["id_token"]
+					'id_token' => $access_token->getValues()["id_token"],
 					// // 'tenant_id' => $_SESSION['oauth2']['tenant_id'],
 					// 'tenant_id' => $tenant_id,
 				);
@@ -200,7 +200,6 @@ class OAuth2_Plugin {
 			exit;
 		}
 	}
-
 }
 
 new OAuth2_Plugin();
