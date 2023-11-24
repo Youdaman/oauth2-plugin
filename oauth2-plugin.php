@@ -27,7 +27,8 @@ class OAuth2_Plugin {
 	public function __construct() {
 
 		// Start a session since we need to store the state parameter
-		session_start();
+		// NOTE: not needed if using WP Session Manager plugin
+		// session_start();
 
 		// Instantiate the OAuth2 client
 		$this->provider = new \League\OAuth2\Client\Provider\GenericProvider(
@@ -65,6 +66,13 @@ class OAuth2_Plugin {
 		register_rest_route( $this->route_namespace, '/posts', array(
 			'methods'  => \WP_REST_Server::READABLE,
 			'callback' => array( $this, 'route_posts' ),
+			'permission_callback' => '__return_true',
+		));
+
+		// generic route for testing
+		register_rest_route( $this->route_namespace, '/me', array(
+			'methods'  => \WP_REST_Server::READABLE,
+			'callback' => array( $this, 'route_me' ),
 			'permission_callback' => '__return_true',
 		));
 
@@ -133,25 +141,12 @@ class OAuth2_Plugin {
 
 			// wp_die( json_encode($access_token) ); // {"token_type":"bearer","access_token":"ZUrHwT3nRHHN"}
 
-			// We have an access token, which we may use in authenticated requests
-			// Retrieve the user's profile
-			// $options['headers']['Accept'] = 'application/json';
-			$me_request = $this->provider->getAuthenticatedRequest(
-				'GET',
-				'https://test.wp/wp-json/wp/v2/users/me',
-				$access_token
-				// $access_token->getToken(),
-				// $options
-			);
-			$me = $this->provider->getParsedResponse( $me_request );
-
 			wp_send_json( array(
 				'access_token' => $access_token->getToken(),
 				'refresh_token' => $access_token->getRefreshToken(),
 				// 'expires' => $access_token->getExpires(), // expires is not set so this errors
 				// 'has_expired' => $access_token->hasExpired(), // expires is not set so this errors
 				'resource_owner' => $this->provider->getResourceOwner( $access_token )->toArray(),
-				'me' => $me,
 			));
 
 		} catch ( \League\OAuth2\Client\Provider\Exception\IdentityProviderException $e ) {
@@ -160,19 +155,28 @@ class OAuth2_Plugin {
 		}
 	}
 
+	public function route_me( $request ) {
+		$this->check_auth( $request );
+
+		$request = $this->provider->getAuthenticatedRequest(
+			'GET',
+			'https://test.wp/wp-json/wp/v2/users/me',
+			$_SESSION['oauth2']['token'], // access_token
+		);
+		$response = $this->provider->getParsedResponse( $request );
+		return rest_ensure_response( $response );
+	}
+
 	public function route_posts( $request ) {
 		$this->check_auth( $request );
 
-		$access_token = $_SESSION['oauth2']['token'];
-
-		$posts_request = $this->provider->getAuthenticatedRequest(
+		$request = $this->provider->getAuthenticatedRequest(
 			'GET',
 			'https://test.wp/wp-json/wp/v2/posts',
-			$access_token
+			$_SESSION['oauth2']['token'], // access_token
 		);
-		$posts = $this->provider->getParsedResponse( $posts_request );
-
-		return rest_ensure_response( $posts );
+		$response = $this->provider->getParsedResponse( $request );
+		return rest_ensure_response( $response );
 	}
 
 	public function route_revoke( $request ) {
