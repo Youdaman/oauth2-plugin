@@ -47,9 +47,6 @@ class OAuth2_Plugin {
 
 		// init the rest api
 		add_action( 'rest_api_init', array( $this, 'action_rest_api_init' ) );
-
-		// limit redirects to the $redirect_uri
-		add_filter( 'allowed_redirect_hosts', fn( $hosts ) => array_merge( $hosts, array( 'oauth2-plugin.wp' ) ) );
 	}
 
 	/**
@@ -101,7 +98,7 @@ class OAuth2_Plugin {
 
 		$_SESSION['oauth2state'] = $this->provider->getState();
 
-		wp_safe_redirect( $authorization_url );
+		header( 'Location: ' . $authorization_url );
 		exit;
 	}
 
