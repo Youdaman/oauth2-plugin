@@ -108,10 +108,7 @@ class OAuth2_Plugin {
 		if ( empty( $_GET['state'] ) || empty( $_SESSION['oauth2state'] ) || ( $_GET['state'] !== $_SESSION['oauth2state'] ) ) {
 
 			if ( isset( $_SESSION['oauth2state'] ) ) {
-				error_log( 'oauth2state: ' . $_SESSION['oauth2state'] );
 				unset( $_SESSION['oauth2state'] );
-			} else {
-				error_log( 'oauth2state: empty' );
 			}
 
 			wp_die( 'Invalid state' );
