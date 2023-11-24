@@ -61,6 +61,13 @@ class OAuth2_Plugin {
 			'permission_callback' => '__return_true',
 		));
 
+		// generic route for testing
+		register_rest_route( $this->route_namespace, '/posts', array(
+			'methods'  => \WP_REST_Server::READABLE,
+			'callback' => array( $this, 'route_posts' ),
+			'permission_callback' => '__return_true',
+		));
+
 		// route for initiating the oauth2 flow
 		register_rest_route( $this->route_namespace, '/auth', array(
 			'methods'  => \WP_REST_Server::READABLE,
@@ -138,13 +145,6 @@ class OAuth2_Plugin {
 			);
 			$me = $this->provider->getParsedResponse( $me_request );
 
-			$posts_request = $this->provider->getAuthenticatedRequest(
-				'GET',
-				'https://test.wp/wp-json/wp/v2/posts',
-				$access_token
-			);
-			$posts = $this->provider->getParsedResponse( $posts_request );
-
 			wp_send_json( array(
 				'access_token' => $access_token->getToken(),
 				'refresh_token' => $access_token->getRefreshToken(),
@@ -152,13 +152,27 @@ class OAuth2_Plugin {
 				// 'has_expired' => $access_token->hasExpired(), // expires is not set so this errors
 				'resource_owner' => $this->provider->getResourceOwner( $access_token )->toArray(),
 				'me' => $me,
-				'posts' => $posts,
 			));
 
 		} catch ( \League\OAuth2\Client\Provider\Exception\IdentityProviderException $e ) {
 			// Failed to get the access token or user details.
 			wp_die( esc_html( $e->getMessage() ) );
 		}
+	}
+
+	public function route_posts( $request ) {
+		$this->check_auth( $request );
+
+		$access_token = $_SESSION['oauth2']['token'];
+
+		$posts_request = $this->provider->getAuthenticatedRequest(
+			'GET',
+			'https://test.wp/wp-json/wp/v2/posts',
+			$access_token
+		);
+		$posts = $this->provider->getParsedResponse( $posts_request );
+
+		return rest_ensure_response( $posts );
 	}
 
 	public function route_revoke( $request ) {
@@ -168,10 +182,13 @@ class OAuth2_Plugin {
 
 	public function check_auth() {
 
+		// check if we have a valid session
 		if ( isset( $_SESSION['oauth2'] ) ) {
 
+			// check if the token has expired
 			if ( $_SESSION['oauth2']['expires'] < time() ) {
 
+				// get a new access token using the refresh token
 				$access_token = $this->provider->getAccessToken(
 					'refresh_token',
 					array(
@@ -179,6 +196,7 @@ class OAuth2_Plugin {
 					)
 				);
 
+				// update the session with the new access token, refresh token, and expiration
 				$_SESSION['oauth2'] = array(
 					'token' => $access_token->getToken(),
 					'expires' => $access_token->getExpires(),
@@ -187,6 +205,7 @@ class OAuth2_Plugin {
 				);
 			}
 		} else {
+			// redirect to the auth route
 			wp_safe_redirect( rest_url( $this->route_namespace . '/auth' ) );
 			exit;
 		}
