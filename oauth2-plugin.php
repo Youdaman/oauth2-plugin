@@ -181,6 +181,14 @@ class OAuth2_Plugin {
 
 	public function route_revoke( $request ) {
 		$this->check_auth( $request );
+
+		session_destroy(); // is this enough?
+
+		// it doesn't seem like there is a revoke endpoint?
+		// $response = wp_remote_request( $revoke_endpoint, $args );
+		// // $body = wp_remote_retrieve_body( $response );
+		// return rest_ensure_response( $response );
+
 		return rest_ensure_response( 'revoke' );
 	}
 
