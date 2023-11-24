@@ -10,7 +10,7 @@
 
 namespace OAuth2_Plugin;
 
-require 'vendor/autoload.php';
+require_once 'vendor/autoload.php';
 
 class OAuth2_Plugin {
 
