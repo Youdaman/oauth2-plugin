@@ -202,4 +202,4 @@ class OAuth2_Plugin {
 	}
 }
 
-new OAuth2_Plugin();
+$oauth2_plugin = new OAuth2_Plugin();
