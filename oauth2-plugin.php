@@ -47,6 +47,9 @@ class OAuth2_Plugin {
 
 		// init the rest api
 		add_action( 'rest_api_init', array( $this, 'action_rest_api_init' ) );
+
+		// limit redirects to the $redirect_uri
+		add_filter( 'allowed_redirect_hosts', fn( $hosts ) => array_merge( $hosts, array( 'oauth2-plugin.wp' ) ) );
 	}
 
 	/**
@@ -98,7 +101,7 @@ class OAuth2_Plugin {
 
 		$_SESSION['oauth2state'] = $this->provider->getState();
 
-		header( 'Location: ' . $authorization_url );
+		wp_safe_redirect( $authorization_url );
 		exit;
 	}
 
@@ -166,13 +169,9 @@ class OAuth2_Plugin {
 		return rest_ensure_response( 'revoke' );
 	}
 
-	public function check_auth( $request ) {
+	public function check_auth() {
 
 		if ( isset( $_SESSION['oauth2'] ) ) {
-
-			// // get tenant id from request/user/session and set on user so /connections returns last used tenant id for frontend to use
-			// $tenant_id = $request['tenant_id'] ?? get_field('tenant_id', 'user_' . get_current_user_id()) ?? $_SESSION['oauth2']['tenant_id'];
-			// update_field('tenant_id', $tenant_id, 'user_' . get_current_user_id());
 
 			if ( $_SESSION['oauth2']['expires'] < time() ) {
 
@@ -188,12 +187,10 @@ class OAuth2_Plugin {
 					'expires' => $access_token->getExpires(),
 					'refresh_token' => $access_token->getRefreshToken(),
 					'id_token' => $access_token->getValues()["id_token"],
-					// // 'tenant_id' => $_SESSION['oauth2']['tenant_id'],
-					// 'tenant_id' => $tenant_id,
 				);
 			}
 		} else {
-			wp_redirect( rest_url( $this->route_namespace . '/auth' ) );
+			wp_safe_redirect( rest_url( $this->route_namespace . '/auth' ) );
 			exit;
 		}
 	}
