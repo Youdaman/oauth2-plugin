@@ -12,7 +12,8 @@ session_start();
 $oauth2_host = 'https://test.wp';
 $client_id = 'erzelqpu26lg';
 $client_secret = 'Ald5C3xay0KjOd1cuMlEvKFw7LC8ALQas28hu5wvNhClE9li';
-$redirect_uri = 'https://' . $_SERVER['HTTP_HOST'] . '/test.php';
+// $callback_uri = 'https://' . $_SERVER['HTTP_HOST'] . '/test.php'; // phpcs:ignore
+$callback_uri = plugin_dir_url( __FILE__ ) . 'test.php';
 $scope = array( 'foo bar baz' );
 $route_namespace = 'foo/v1';
 
@@ -20,7 +21,7 @@ $provider = new \League\OAuth2\Client\Provider\GenericProvider(
 	array(
 		'clientId'                => $client_id,
 		'clientSecret'            => $client_secret,
-		'redirectUri'             => $redirect_uri,
+		'redirectUri'             => $callback_uri,
 		'urlAuthorize'            => $oauth2_host . '/wp-json/oauth2/authorize',
 		'urlAccessToken'          => $oauth2_host . '/wp-json/oauth2/access_token',
 		'urlResourceOwnerDetails' => $oauth2_host . '/wp-json/wp/v2/users/me',
@@ -51,7 +52,12 @@ if ( !isset( $_GET['code'] ) ) {
 	// $_SESSION['oauth2pkceCode'] = $provider->getPkceCode();
 
 	// Redirect the user to the authorization URL.
-	header( 'Location: ' . $authorization_url );
+	// header( 'Location: ' . $authorization_url );
+
+	// debug: output the authorization URL and callback URI
+    echo 'callback_uri: ' . $callback_uri . '<br>'; // phpcs:ignore
+    echo '<a href="' . $authorization_url . '">Log in with OAuth2</a>'; // phpcs:ignore
+
 	exit;
 
 	// Check given state against previously stored one to mitigate CSRF attack
