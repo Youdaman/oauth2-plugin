@@ -108,6 +108,10 @@ if ( !isset( $_GET['code'] ) ) {
 		// $options['headers']['xero-tenant-id'] = $xeroTenantIdArray[0]['tenantId'];
 		$options['headers']['Accept'] = 'application/json';
 
+		// NOTE: don't reckon this is necessary (or does anything) because the $access_token is passed as a parameter to the getAuthenticatedRequest() method below
+		// // pass access token in Authorization header
+		// $options['headers']['Authorization'] = 'Bearer ' . $access_token->getToken();
+
 		// The provider provides a way to get an authenticated API request for
 		// the service, using the access token; it returns an object conforming
 		// to Psr\Http\Message\RequestInterface.
