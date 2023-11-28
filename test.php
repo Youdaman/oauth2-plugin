@@ -21,6 +21,7 @@ $callback_uri = 'https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
 $scope = array( 'foo bar baz' );
 $route_namespace = 'foo/v1';
 
+// alternative to passing Authorization header with access token in request $options
 class OAuth2Provider extends \League\OAuth2\Client\Provider\GenericProvider {
 	protected function getAuthorizationHeaders( $token = null ) {
 		return array( 'Authorization' => 'Bearer ' . $token );
@@ -120,6 +121,7 @@ if ( !isset( $_GET['code'] ) ) {
 		// UPDATE: turns out you do need to pass the access token in the Authorization header,
 		// or at least override the getAuthorizationHeaders() method of the $provider to do so
 		// pass access token in Authorization header, see https://stackoverflow.com/a/18752897
+		// UPDATE: subclassed the GenericProvider class to override the getAuthorizationHeaders() method
 		// $options['headers']['Authorization'] = 'Bearer ' . $access_token->getToken();
 
 		echo '<pre>';
