@@ -100,13 +100,9 @@ if ( !isset( $_GET['code'] ) ) {
 
 		echo 'Resource Owner ID: ' . $resource_owner->getId() . "<br>"; // phpcs:ignore
 
-		// debug
-		error_log('hello?'); // phpcs:ignore
-		echo 'Hello world!';
-		exit;
-
-        // phpcs:ignore
-		var_export( $resource_owner->toArray() );
+		echo '<pre>';
+		var_export( $resource_owner->toArray() ); // phpcs:ignore
+		echo '</pre>';
 
 		// xero example passes options with headers
 		// $options['headers']['xero-tenant-id'] = $xeroTenantIdArray[0]['tenantId'];
@@ -124,8 +120,21 @@ if ( !isset( $_GET['code'] ) ) {
 			$options
 		);
 
-        // phpcs:ignore
-		var_export( $provider->getParsedResponse( $request ) );
+		echo '<pre>';
+		var_export( $provider->getParsedResponse( $request ) ); // phpcs:ignore
+		echo '</pre>';
+
+		// get custom endpoint that will require scope
+		$request = $provider->getAuthenticatedRequest(
+			'GET',
+			'https://test.wp/wp-json/foo/v1/hello?name=there',
+			$access_token,
+			$options
+		);
+
+		echo '<pre>';
+		var_export( $provider->getParsedResponse( $request ) ); // phpcs:ignore
+		echo '</pre>';
 
 	} catch ( \League\OAuth2\Client\Provider\Exception\IdentityProviderException $e ) {
 
