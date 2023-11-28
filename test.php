@@ -31,8 +31,8 @@ class OAuth2Provider extends \League\OAuth2\Client\Provider\GenericProvider {
 	}
 }
 
-$provider = new \League\OAuth2\Client\Provider\GenericProvider(
-// $provider = new OAuth2Provider(
+// $provider = new \League\OAuth2\Client\Provider\GenericProvider(
+$provider = new OAuth2Provider(
 	array(
 		'clientId'                => $client_id,
 		'clientSecret'            => $client_secret,
@@ -126,8 +126,6 @@ if ( !isset( $_GET['code'] ) ) {
 		// pass access token in Authorization header, see https://stackoverflow.com/a/18752897
 		// UPDATE: subclassed the GenericProvider class to override the getAuthorizationHeaders() method
 		// $options['headers']['Authorization'] = 'Bearer ' . $access_token->getToken();
-
-		$options['access_token'] = $_GET['access_token'] ?? $access_token->getToken();
 
 		var_export( $options ); // phpcs:ignore
 
