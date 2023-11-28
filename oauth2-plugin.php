@@ -47,6 +47,9 @@ class OAuth2_Plugin {
 
 	public function setup_oauth2_provider() {
 
+		// allow the oauth2 callback to be on the same domain
+		add_filter( 'rest_oauth.check_callback', '__return_true' );
+
 		// Instantiate the OAuth2 client
 		$this->provider = new \League\OAuth2\Client\Provider\GenericProvider(
 			array(
