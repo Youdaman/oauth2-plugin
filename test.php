@@ -17,7 +17,7 @@ $client_secret = 'Ald5C3xay0KjOd1cuMlEvKFw7LC8ALQas28hu5wvNhClE9li';
 // this needs to match the Callback field on the OAuth2 application settings page
 // $callback_uri = 'https://test.wp/wp-content/plugins/oauth2-plugin/test.php';
 // $callback_uri = 'http://localhost:8000/test.php';
-$callback_uri = $_SERVER['REQUEST_URI'];
+$callback_uri = 'https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
 $scope = array( 'foo bar baz' );
 $route_namespace = 'foo/v1';
 
