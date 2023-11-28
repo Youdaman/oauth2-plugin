@@ -19,7 +19,7 @@ class OAuth2_Plugin {
 	private $provider;
 	private $client_id = 'erzelqpu26lg';
 	private $client_secret = 'Ald5C3xay0KjOd1cuMlEvKFw7LC8ALQas28hu5wvNhClE9li';
-	private $redirect_uri = 'https://oauth2-plugin.wp/wp-json/foo/v1/callback';
+	private $callback_endpoint = '/foo/v1/callback';
 	private $scope = array( 'openid email profile offline_access foo.bar' );
 	private $route_namespace = 'foo/v1';
 
@@ -32,21 +32,8 @@ class OAuth2_Plugin {
 		// NOTE: not needed if using WP Session Manager plugin
 		// session_start();
 
-		// Instantiate the OAuth2 client
-		$this->provider = new \League\OAuth2\Client\Provider\GenericProvider(
-			array(
-				'clientId'                => $this->client_id,
-				'clientSecret'            => $this->client_secret,
-				'redirectUri'             => $this->redirect_uri,
-				'urlAuthorize'            => 'https://test.wp/wp-json/oauth2/authorize',
-				'urlAccessToken'          => 'https://test.wp/wp-json/oauth2/access_token',
-				'urlResourceOwnerDetails' => 'https://test.wp/wp-json/wp/v2/users/me',
-			),
-			array(
-				// override the default Guzzle client to avoid self-signed certificate errors
-				'httpClient' => new \GuzzleHttp\Client( array( 'verify' => false ) ),
-			)
-		);
+		// setup the oauth2 provider
+		add_action( 'init', array( $this, 'setup_oauth2_provider' ) );
 
 		// init the rest api
 		add_action( 'rest_api_init', array( $this, 'action_rest_api_init' ) );
@@ -56,6 +43,25 @@ class OAuth2_Plugin {
 
 		// register the carbon fields
 		add_action( 'carbon_fields_register_fields', array( $this, 'add_plugin_settings_page' ) );
+	}
+
+	public function setup_oauth2_provider() {
+
+		// Instantiate the OAuth2 client
+		$this->provider = new \League\OAuth2\Client\Provider\GenericProvider(
+			array(
+				'clientId'                => $this->client_id,
+				'clientSecret'            => $this->client_secret,
+				'redirectUri'             => home_url( $this->callback_endpoint, 'rest' ),
+				'urlAuthorize'            => home_url( '/oauth2/authorize', 'rest' ),
+				'urlAccessToken'          => home_url( '/oauth2/access_token', 'rest' ),
+				'urlResourceOwnerDetails' => home_url( '/wp/v2/users/me', 'rest' ),
+			),
+			array(
+				// override the default Guzzle client to avoid self-signed certificate errors
+				'httpClient' => new \GuzzleHttp\Client( array( 'verify' => false ) ),
+			)
+		);
 	}
 
 	public function load_carbon_fields() {
