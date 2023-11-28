@@ -85,6 +85,8 @@ if ( !isset( $_GET['code'] ) ) {
 
 	try {
 
+		echo '<pre>';
+
 		// // Optional, only required when PKCE is enabled.
 		// // Restore the PKCE code stored in the session.
 		// $provider->setPkceCode( $_SESSION['oauth2pkceCode'] );
@@ -109,9 +111,7 @@ if ( !isset( $_GET['code'] ) ) {
 
 		echo 'Resource Owner ID: ' . $resource_owner->getId() . "<br>"; // phpcs:ignore
 
-		echo '<pre>';
 		var_export( $resource_owner->toArray() ); // phpcs:ignore
-		echo '</pre>';
 
 		// xero example passes options with headers
 		// $options['headers']['xero-tenant-id'] = $xeroTenantIdArray[0]['tenantId'];
@@ -124,9 +124,7 @@ if ( !isset( $_GET['code'] ) ) {
 		// UPDATE: subclassed the GenericProvider class to override the getAuthorizationHeaders() method
 		// $options['headers']['Authorization'] = 'Bearer ' . $access_token->getToken();
 
-		echo '<pre>';
 		var_export( $options ); // phpcs:ignore
-		echo '</pre>';
 
 		// The provider provides a way to get an authenticated API request for
 		// the service, using the access token; it returns an object conforming
@@ -140,9 +138,7 @@ if ( !isset( $_GET['code'] ) ) {
 			$options
 		);
 
-		echo '<pre>';
 		var_export( $provider->getParsedResponse( $request ) ); // phpcs:ignore
-		echo '</pre>';
 
 		// get custom endpoint that will require scope
 		$request = $provider->getAuthenticatedRequest(
@@ -152,8 +148,8 @@ if ( !isset( $_GET['code'] ) ) {
 			$options
 		);
 
-		echo '<pre>';
 		var_export( $provider->getParsedResponse( $request ) ); // phpcs:ignore
+
 		echo '</pre>';
 
 	} catch ( \League\OAuth2\Client\Provider\Exception\IdentityProviderException $e ) {
