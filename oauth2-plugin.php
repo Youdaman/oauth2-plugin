@@ -82,7 +82,10 @@ class OAuth2_Plugin {
 		register_rest_route( $this->route_namespace, '/hello', array(
 			'methods'  => \WP_REST_Server::READABLE,
 			'callback' => array( $this, 'route_hello' ),
-			'permission_callback' => '__return_true',
+			// 'permission_callback' => '__return_true',
+			'permission_callback' => function () {
+				return current_user_can( 'edit_others_posts' );
+			},
 		));
 	}
 

@@ -21,16 +21,18 @@ $callback_uri = 'https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
 $scope = array( 'foo bar baz' );
 $route_namespace = 'foo/v1';
 
-// alternative to passing Authorization header with access token in request $options
-/** override authz headers by subclassing provider */
+/**
+ * Override authz headers by subclassing provider
+ * alternative to passing Authorization header with access token in request $options
+ * */
 class OAuth2Provider extends \League\OAuth2\Client\Provider\GenericProvider {
 	protected function getAuthorizationHeaders( $token = null ) {
 		return array( 'Authorization' => 'Bearer ' . $token );
 	}
 }
 
-// $provider = new \League\OAuth2\Client\Provider\GenericProvider(
-$provider = new OAuth2Provider(
+$provider = new \League\OAuth2\Client\Provider\GenericProvider(
+// $provider = new OAuth2Provider(
 	array(
 		'clientId'                => $client_id,
 		'clientSecret'            => $client_secret,
@@ -97,6 +99,9 @@ if ( !isset( $_GET['code'] ) ) {
 			'code' => $_GET['code'],
 		));
 
+		$_SESSION['access_token'] ??= $access_token->getToken();
+		var_export( $_SESSION ); // phpcs:ignore
+
 		// We have an access token, which we may use in authenticated
 		// requests against the service provider's API.
 		echo 'Access Token: ' . $access_token->getToken() . "<br>"; // phpcs:ignore
@@ -124,6 +129,8 @@ if ( !isset( $_GET['code'] ) ) {
 		// pass access token in Authorization header, see https://stackoverflow.com/a/18752897
 		// UPDATE: subclassed the GenericProvider class to override the getAuthorizationHeaders() method
 		// $options['headers']['Authorization'] = 'Bearer ' . $access_token->getToken();
+
+		$options['access_token'] = $_SESSION['access_token'] ?? $access_token->getToken();
 
 		var_export( $options ); // phpcs:ignore
 
