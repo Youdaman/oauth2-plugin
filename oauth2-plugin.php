@@ -5,9 +5,6 @@
  * @package OAuth2_Plugin
  */
 
-// see https://oauth2-client.thephpleague.com/usage/
-// and https://devblog.xero.com/use-php-to-connect-with-xero-31945bccd037
-
 namespace OAuth2_Plugin;
 
 require_once 'vendor/autoload.php';
@@ -61,8 +58,6 @@ class OAuth2_Plugin {
 	}
 
 	public function action_rest_api_init() {
-
-		// generic route for testing
 		register_rest_route( $this->route_namespace, '/hello', array(
 			'methods'  => \WP_REST_Server::READABLE,
 			'callback' => array( $this, 'route_hello' ),
