@@ -109,6 +109,8 @@ if ( !isset( $_GET['code'] ) ) {
 		$options['headers']['Accept'] = 'application/json';
 
 		// NOTE: don't reckon this is necessary (or does anything) because the $access_token is passed as a parameter to the getAuthenticatedRequest() method below
+		// UPDATE: turns out you do need to pass the access token in the Authorization header,
+		// or at least override the getAuthorizationHeaders() method of the $provider to do so
 		// // pass access token in Authorization header
 		// $options['headers']['Authorization'] = 'Bearer ' . $access_token->getToken();
 
