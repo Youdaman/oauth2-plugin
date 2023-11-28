@@ -22,6 +22,7 @@ $scope = array( 'foo bar baz' );
 $route_namespace = 'foo/v1';
 
 // alternative to passing Authorization header with access token in request $options
+/** override authz headers by subclassing provider */
 class OAuth2Provider extends \League\OAuth2\Client\Provider\GenericProvider {
 	protected function getAuthorizationHeaders( $token = null ) {
 		return array( 'Authorization' => 'Bearer ' . $token );
