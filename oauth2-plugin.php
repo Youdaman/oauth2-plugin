@@ -20,9 +20,9 @@ class OAuth2_Plugin {
 	 */
 	public function __construct() {
 
-		add_filter( 'rest_pre_dispatch', array( $this, 'filter_rest_pre_dispatch' ), 10, 3 );
+		// add_filter( 'rest_pre_dispatch', array( $this, 'filter_rest_pre_dispatch' ), 10, 3 );
 
-		add_filter( 'rest_authentication_errors', array( $this, 'filter_rest_authentication_errors' ) );
+		// add_filter( 'rest_authentication_errors', array( $this, 'filter_rest_authentication_errors' ) );
 
 		// init the rest api
 		add_action( 'rest_api_init', array( $this, 'action_rest_api_init' ) );
