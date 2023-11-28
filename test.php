@@ -15,7 +15,8 @@ $client_secret = 'Ald5C3xay0KjOd1cuMlEvKFw7LC8ALQas28hu5wvNhClE9li';
 // $callback_uri = 'https://' . $_SERVER['HTTP_HOST'] . '/test.php';
 // $callback_uri = plugin_dir_url( __FILE__ ) . 'test.php';
 // this needs to match the Callback field on the OAuth2 application settings page
-$callback_uri = 'https://test.wp/wp-content/plugins/oauth2-plugin/test.php';
+// $callback_uri = 'https://test.wp/wp-content/plugins/oauth2-plugin/test.php';
+$callback_uri = 'http://localhost:8000/test.php';
 $scope = array( 'foo bar baz' );
 $route_namespace = 'foo/v1';
 
@@ -93,17 +94,16 @@ if ( !isset( $_GET['code'] ) ) {
 		// NOTE: it seems OAuth 2 for WordPress does not set the expires parameter, so the above two lines throw the following error:
 		// Fatal error: Uncaught RuntimeException: "expires" is not set on the token
 
-		error_log('hello?'); // phpcs:ignore
-
-		echo 'Hello world!';
-
-		exit;
-
 		// Using the access token, we may look up details about the
 		// resource owner.
 		$resource_owner = $provider->getResourceOwner( $access_token );
 
 		echo 'Resource Owner ID: ' . $resource_owner->getId() . "<br>"; // phpcs:ignore
+
+		// debug
+		error_log('hello?'); // phpcs:ignore
+		echo 'Hello world!';
+		exit;
 
         // phpcs:ignore
 		var_export( $resource_owner->toArray() );
