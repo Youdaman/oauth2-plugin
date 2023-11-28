@@ -20,6 +20,10 @@ class OAuth2_Plugin {
 	 */
 	public function __construct() {
 
+		add_filter( 'rest_pre_dispatch', array( $this, 'filter_rest_pre_dispatch' ), 10, 3 );
+
+		add_filter( 'rest_authentication_errors', array( $this, 'filter_rest_authentication_errors' ) );
+
 		// init the rest api
 		add_action( 'rest_api_init', array( $this, 'action_rest_api_init' ) );
 
@@ -28,6 +32,23 @@ class OAuth2_Plugin {
 
 		// register the carbon fields
 		add_action( 'carbon_fields_register_fields', array( $this, 'add_plugin_settings_page' ) );
+	}
+
+	public function filter_rest_pre_dispatch( $result, $server, $request ) {
+		if ( $request->get_route() === $this->route_namespace . '/hello' ) {
+			$result = $this->route_hello( $request );
+		}
+		return $result;
+	}
+
+	public function filter_rest_authentication_errors( $result ) {
+		if ( ! empty( $result ) ) {
+			return $result;
+		}
+		if ( ! is_user_logged_in() ) {
+			return new \WP_Error( 'rest_not_logged_in', 'You are not currently logged in.', array( 'status' => 401 ) );
+		}
+		return $result;
 	}
 
 	public function load_carbon_fields() {
