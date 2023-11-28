@@ -12,8 +12,10 @@ session_start();
 $oauth2_host = 'https://test.wp';
 $client_id = 'erzelqpu26lg';
 $client_secret = 'Ald5C3xay0KjOd1cuMlEvKFw7LC8ALQas28hu5wvNhClE9li';
-// $callback_uri = 'https://' . $_SERVER['HTTP_HOST'] . '/test.php'; // phpcs:ignore
-$callback_uri = plugin_dir_url( __FILE__ ) . 'test.php';
+// $callback_uri = 'https://' . $_SERVER['HTTP_HOST'] . '/test.php';
+// $callback_uri = plugin_dir_url( __FILE__ ) . 'test.php';
+// this needs to match the Callback field on the OAuth2 application settings page
+$callback_uri = 'https://test.wp/wp-content/plugins/oauth2-plugin/test.php';
 $scope = array( 'foo bar baz' );
 $route_namespace = 'foo/v1';
 
