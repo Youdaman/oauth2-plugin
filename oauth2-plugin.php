@@ -19,7 +19,7 @@ class OAuth2_Plugin {
 	private $provider;
 	private $client_id = 'erzelqpu26lg';
 	private $client_secret = 'Ald5C3xay0KjOd1cuMlEvKFw7LC8ALQas28hu5wvNhClE9li';
-	private $callback_endpoint = '/foo/v1/callback';
+	private $callback_endpoint = '/wp-json/foo/v1/callback';
 	private $scope = array( 'openid email profile offline_access foo.bar' );
 	private $route_namespace = 'foo/v1';
 
@@ -53,9 +53,9 @@ class OAuth2_Plugin {
 				'clientId'                => $this->client_id,
 				'clientSecret'            => $this->client_secret,
 				'redirectUri'             => home_url( $this->callback_endpoint, 'rest' ),
-				'urlAuthorize'            => home_url( '/oauth2/authorize', 'rest' ),
-				'urlAccessToken'          => home_url( '/oauth2/access_token', 'rest' ),
-				'urlResourceOwnerDetails' => home_url( '/wp/v2/users/me', 'rest' ),
+				'urlAuthorize'            => home_url( '/wp-json/oauth2/authorize', 'rest' ),
+				'urlAccessToken'          => home_url( '/wp-json/oauth2/access_token', 'rest' ),
+				'urlResourceOwnerDetails' => home_url( '/wp-json/wp/v2/users/me', 'rest' ),
 			),
 			array(
 				// override the default Guzzle client to avoid self-signed certificate errors
