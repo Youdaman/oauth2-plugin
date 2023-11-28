@@ -99,9 +99,6 @@ if ( !isset( $_GET['code'] ) ) {
 			'code' => $_GET['code'],
 		));
 
-		$_SESSION['access_token'] ??= $access_token->getToken();
-		var_export( $_SESSION ); // phpcs:ignore
-
 		// We have an access token, which we may use in authenticated
 		// requests against the service provider's API.
 		echo 'Access Token: ' . $access_token->getToken() . "<br>"; // phpcs:ignore
@@ -130,7 +127,7 @@ if ( !isset( $_GET['code'] ) ) {
 		// UPDATE: subclassed the GenericProvider class to override the getAuthorizationHeaders() method
 		// $options['headers']['Authorization'] = 'Bearer ' . $access_token->getToken();
 
-		$options['access_token'] = $_SESSION['access_token'] ?? $access_token->getToken();
+		$options['access_token'] = $_GET['access_token'] ?? $access_token->getToken();
 
 		var_export( $options ); // phpcs:ignore
 
