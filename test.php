@@ -16,7 +16,8 @@ $client_secret = 'Ald5C3xay0KjOd1cuMlEvKFw7LC8ALQas28hu5wvNhClE9li';
 // $callback_uri = plugin_dir_url( __FILE__ ) . 'test.php';
 // this needs to match the Callback field on the OAuth2 application settings page
 // $callback_uri = 'https://test.wp/wp-content/plugins/oauth2-plugin/test.php';
-$callback_uri = 'http://localhost:8000/test.php';
+// $callback_uri = 'http://localhost:8000/test.php';
+$callback_uri = $_SERVER['REQUEST_URI'];
 $scope = array( 'foo bar baz' );
 $route_namespace = 'foo/v1';
 
@@ -111,8 +112,12 @@ if ( !isset( $_GET['code'] ) ) {
 		// NOTE: don't reckon this is necessary (or does anything) because the $access_token is passed as a parameter to the getAuthenticatedRequest() method below
 		// UPDATE: turns out you do need to pass the access token in the Authorization header,
 		// or at least override the getAuthorizationHeaders() method of the $provider to do so
-		// // pass access token in Authorization header
-		// $options['headers']['Authorization'] = 'Bearer ' . $access_token->getToken();
+		// pass access token in Authorization header, see https://stackoverflow.com/a/18752897
+		$options['headers']['Authorization'] = 'Bearer ' . $access_token->getToken();
+
+		echo '<pre>';
+		var_export( $options ); // phpcs:ignore
+		echo '</pre>';
 
 		// The provider provides a way to get an authenticated API request for
 		// the service, using the access token; it returns an object conforming
