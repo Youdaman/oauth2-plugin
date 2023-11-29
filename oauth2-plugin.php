@@ -120,6 +120,10 @@ class OAuth2_Plugin {
 
 	public function user_can_access_route() {
 
+		if ( ! is_user_logged_in() ) {
+			return false;
+		}
+
 		$scopes = carbon_get_theme_option( 'scopes' );
 
 		$current_user_id = get_current_user_id();
