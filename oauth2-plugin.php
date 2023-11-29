@@ -38,6 +38,9 @@ class OAuth2_Plugin {
 			return $errors;
 		}
 
+		error_log( 'filter_rest_authentication_errors' ); // phpcs:ignore
+		error_log( $this->user_can_access_route() ); // phpcs:ignore
+
 		return $this->user_can_access_route() ? $errors : new \WP_Error(
 			'rest_forbidden',
 			__( 'You cannot view the requested resource.' ),
@@ -122,6 +125,25 @@ class OAuth2_Plugin {
 		$current_user_id = get_current_user_id();
 		$current_route = strtok( $_SERVER['REQUEST_URI'], '?' );
 		$current_method = $_SERVER['REQUEST_METHOD'];
+
+		// remove /wp-json from current route
+		// this is needed because scope routes are stored without /wp-json
+		// and we want to compare the current route with the scope routes below
+		$current_route = str_replace( '/wp-json', '', $current_route );
+
+		// if current route starts with /oauth2/ return true
+		// this is needed so the oauth2 plugin can work
+		if ( strpos( $current_route, '/oauth2/' ) === 0 ) {
+			return true;
+		}
+
+		// phpcs:disable
+		error_log( 'user_can_access_route' );
+		error_log( $current_user_id );
+		error_log( $current_route );
+		error_log( $current_method );
+		error_log( json_encode( $scopes ) );
+		// phpcs:enable
 
 		// filter scopes by current user and current route
 		$filtered_scopes = array_filter( $scopes, function ( $scope ) use ( $current_user_id, $current_route, $current_method ) {
