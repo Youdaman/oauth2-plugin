@@ -20,9 +20,8 @@ class OAuth2_Plugin {
 	 */
 	public function __construct() {
 
-		// add_filter( 'rest_pre_dispatch', array( $this, 'filter_rest_pre_dispatch' ), 10, 3 );
-
-		// add_filter( 'rest_authentication_errors', array( $this, 'filter_rest_authentication_errors' ) );
+		// use this instead of per route permission callbacks
+		add_filter( 'rest_authentication_errors', array( $this, 'filter_rest_authentication_errors' ) );
 
 		// init the rest api
 		add_action( 'rest_api_init', array( $this, 'action_rest_api_init' ) );
@@ -34,21 +33,17 @@ class OAuth2_Plugin {
 		add_action( 'carbon_fields_register_fields', array( $this, 'add_plugin_settings_page' ) );
 	}
 
-	public function filter_rest_pre_dispatch( $result, $server, $request ) {
-		if ( $request->get_route() === $this->route_namespace . '/hello' ) {
-			$result = $this->route_hello( $request );
+	public function filter_rest_authentication_errors( $errors ) {
+		if ( is_wp_error( $errors ) ) {
+			return $errors;
 		}
-		return $result;
-	}
 
-	public function filter_rest_authentication_errors( $result ) {
-		if ( ! empty( $result ) ) {
-			return $result;
-		}
-		if ( ! is_user_logged_in() ) {
-			return new \WP_Error( 'rest_not_logged_in', 'You are not currently logged in.', array( 'status' => 401 ) );
-		}
-		return $result;
+		return $this->user_can_access_route()
+			?? new \WP_Error(
+				'rest_forbidden',
+				__( 'You cannot view the requested resource.' ),
+				array( 'status' => rest_authorization_required_code() )
+			);
 	}
 
 	public function load_carbon_fields() {
@@ -109,37 +104,52 @@ class OAuth2_Plugin {
 		register_rest_route( $this->route_namespace, '/hello', array(
 			'methods'  => \WP_REST_Server::READABLE,
 			'callback' => array( $this, 'route_hello' ),
-			'permission_callback' => function () {
-
-				$scopes = carbon_get_theme_option( 'scopes' );
-
-				$current_user_id = get_current_user_id();
-				// $current_route = $_SERVER['REQUEST_URI'];
-				$current_route = '/' . $this->route_namespace . '/hello';
-				$current_method = $_SERVER['REQUEST_METHOD'];
-
-				// // phpcs:disable
-				error_log( 'current_user_id: ' . $current_user_id );
-				error_log( 'current_route: ' . $current_route );
-				error_log( 'current_method: ' . $current_method );
-				// error_log( 'scopes: ' . print_r( $scopes, true ) );
-				// // phpcs:enable
-
-				// filter scopes by current user and current route
-				$filtered_scopes = array_filter( $scopes, function ( $scope ) use ( $current_user_id, $current_route, $current_method ) {
-					return in_array( $current_user_id, $scope['users'], true )
-						&& in_array( $current_route, $scope['routes'], true )
-						&& in_array( $current_method, $scope['methods'], true );
-				} );
-				return ! empty( $filtered_scopes );
-			},
+			// 'permission_callback' => array( $this, 'hello_route_permission_callback' ),
+			'permission_callback' => '__return_true',
 		));
 
+		// debug route to see all scopes
 		register_rest_route( $this->route_namespace, '/scopes', array(
 			'methods'  => \WP_REST_Server::READABLE,
 			'callback' => fn() => rest_ensure_response( carbon_get_theme_option( 'scopes' ) ),
 			'permission_callback' => '__return_true',
 		));
+	}
+
+	public function user_can_access_route() {
+
+		$scopes = carbon_get_theme_option( 'scopes' );
+
+		$current_user_id = get_current_user_id();
+		$current_route = strtok( $_SERVER['REQUEST_URI'], '?' );
+		$current_method = $_SERVER['REQUEST_METHOD'];
+
+		// filter scopes by current user and current route
+		$filtered_scopes = array_filter( $scopes, function ( $scope ) use ( $current_user_id, $current_route, $current_method ) {
+			return in_array( $current_user_id, $scope['users'], true )
+				&& in_array( $current_route, $scope['routes'], true )
+				&& in_array( $current_method, $scope['methods'], true );
+		} );
+
+		return ! empty( $filtered_scopes );
+	}
+
+	public function hello_route_permission_callback() {
+
+		$scopes = carbon_get_theme_option( 'scopes' );
+
+		$current_user_id = get_current_user_id();
+		$current_route = '/' . $this->route_namespace . '/hello';
+		$current_method = $_SERVER['REQUEST_METHOD'];
+
+		// filter scopes by current user and current route
+		$filtered_scopes = array_filter( $scopes, function ( $scope ) use ( $current_user_id, $current_route, $current_method ) {
+			return in_array( $current_user_id, $scope['users'], true )
+				&& in_array( $current_route, $scope['routes'], true )
+				&& in_array( $current_method, $scope['methods'], true );
+		} );
+
+		return ! empty( $filtered_scopes );
 	}
 
 	public function route_hello( $request ) {
