@@ -38,12 +38,11 @@ class OAuth2_Plugin {
 			return $errors;
 		}
 
-		return $this->user_can_access_route()
-			?? new \WP_Error(
-				'rest_forbidden',
-				__( 'You cannot view the requested resource.' ),
-				array( 'status' => rest_authorization_required_code() )
-			);
+		return $this->user_can_access_route() ? $errors : new \WP_Error(
+			'rest_forbidden',
+			__( 'You cannot view the requested resource.' ),
+			array( 'status' => rest_authorization_required_code() )
+		);
 	}
 
 	public function load_carbon_fields() {
