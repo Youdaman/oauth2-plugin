@@ -137,13 +137,13 @@ class OAuth2_Plugin {
 			return true;
 		}
 
-		// phpcs:disable
-		error_log( 'user_can_access_route' );
-		error_log( $current_user_id );
-		error_log( $current_route );
-		error_log( $current_method );
-		error_log( json_encode( $scopes ) );
-		// phpcs:enable
+		// // phpcs:disable
+		// error_log( 'user_can_access_route' );
+		// error_log( $current_user_id );
+		// error_log( $current_route );
+		// error_log( $current_method );
+		// error_log( json_encode( $scopes ) );
+		// // phpcs:enable
 
 		// filter scopes by current user and current route
 		$filtered_scopes = array_filter( $scopes, function ( $scope ) use ( $current_user_id, $current_route, $current_method ) {
